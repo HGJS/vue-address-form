@@ -1,0 +1,197 @@
+<template>
+    <div>
+        <form>
+            <h3 class="mb-3">Find your address</h3>
+            <div class="form-group mb-3">
+                <label for="setupHouseNumber">House Number (optional)</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    v-model="setup.houseNumber"
+                    id="setupHouseNumber"
+                    name="setupHouseNumber"
+                />
+            </div>
+            <div class="form-group mb-3">
+                <label for="setupPostcode">Postcode</label>
+                <input
+                    type="text"
+                    class="form-control text-uppercase"
+                    v-model="setup.postcode"
+                    id="setupPostcode"
+                    name="setupPostcode"
+                />
+            </div>
+            <div class="form-group mb-3">
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    @click="fetchAddresses"
+                >
+                    Find Address
+                </button>
+            </div>
+            <div v-if="showAddressSelect && !hasError" class="form-group mb-3">
+                <label for="formDataAddresses">Address</label>
+                <select
+                    name="formDataAddresses"
+                    id="formDataAddresses"
+                    class="form-control"
+                    @change="populateAddress()"
+                    ref="formDataAddresses"
+                >
+                    <option value="" selected disabled
+                        >{{ options.addresses.length }} Addresses found</option
+                    >
+                    <option
+                        v-for="(address, index) in options.addresses"
+                        :key="address.formatted_address[0]"
+                        :value="index"
+                    >
+                        {{ address.line_1 }}, {{ address.town_or_city }},
+                        {{ address.county }}
+                    </option>
+                </select>
+            </div>
+        </form>
+        <div v-if="hasError" class="alert alert-danger mb-3">
+            There was an error fetching address data. Please enter your address
+            manually.
+        </div>
+        <div v-if="noResults" class="alert alert-warning mb-3">
+            No results found, please enter your address manually.
+        </div>
+        <form v-if="showAddressDetails || hasError">
+            <h3 class="mb-3">Your address</h3>
+            <div class="form-group mb-3">
+                <label for="addressLine1">Address Line 1</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    v-model="formData.address.line1"
+                    name="addressLine1"
+                    id="addressLine1"
+                />
+            </div>
+            <div class="form-group mb-3">
+                <label for="addressTown">Town/City</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    v-model="formData.address.town"
+                    name="addressTown"
+                    id="addressTown"
+                />
+            </div>
+            <div class="form-group mb-3">
+                <label for="addressCounty">County</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    v-model="formData.address.county"
+                    name="addressCounty"
+                    id="addressCounty"
+                />
+            </div>
+            <div class="form-group mb-3">
+                <label for="addressPostcode">Postcode</label>
+                <input
+                    type="text"
+                    class="form-control text-uppercase"
+                    v-model="formData.address.postcode"
+                    name="addressPostcode"
+                    id="addressPostcode"
+                />
+            </div>
+        </form>
+    </div>
+</template>
+
+<script>
+    import axios from 'axios';
+    export default {
+        data() {
+            return {
+                hasError: false,
+                noResults: false,
+                showAddressDetails: false,
+                showAddressSelect: false,
+                previousPostcode: '',
+                previousHouseNumber: '',
+                setup: {
+                    houseNumber: '',
+                    postcode: ''
+                },
+                options: {
+                    addresses: []
+                },
+                formData: {
+                    address: {}
+                }
+            };
+        },
+        methods: {
+            fetchAddresses() {
+                if (
+                    this.setup.postcode === this.previousPostcode &&
+                    this.setup.houseNumber &&
+                    this.setup.houseNumber === this.previousHouseNumber
+                ) {
+                    return;
+                }
+
+                this.formData.address = {};
+                let request = `https://api.getAddress.io/find/${this.setup.postcode}?api-key=3BmZi5WZCUWa7FsF0moFEg28724&expand=true`;
+                if (this.setup.houseNumber) {
+                    request = `https://api.getAddress.io/find/${this.setup.postcode}/${this.setup.houseNumber}?api-key=3BmZi5WZCUWa7FsF0moFEg28724&expand=true`;
+                }
+                axios
+                    .get(request)
+                    .then((res) => {
+                        this.hasError = false;
+                        this.options.addresses = res.data.addresses;
+                        this.checkAddressesTotal();
+                    })
+                    .catch((err) => {
+                        this.hasError = true;
+                        console.log(err);
+                    });
+
+                this.previousHouseNumber = this.setup.houseNumber;
+                this.previousPostcode = this.setup.postcode;
+            },
+            checkAddressesTotal() {
+                if (this.options.addresses.length === 1) {
+                    this.populateAddress();
+                    this.showAddressSelect = false;
+                    this.noResults = false;
+                } else if (this.options.addresses.length === 0) {
+                    this.noResults = true;
+                    this.showAddressDetails = true;
+                } else {
+                    this.noResults = false;
+                    this.showAddressSelect = true;
+                }
+            },
+            populateAddress() {
+                let index = 0;
+                if (
+                    this.$refs.formDataAddresses &&
+                    this.$refs.formDataAddresses.value
+                ) {
+                    index = this.$refs.formDataAddresses.value;
+                }
+                const selectedAddress = this.options.addresses[index];
+                this.formData.address = {
+                    line1: selectedAddress.line_1,
+                    town: selectedAddress.town_or_city,
+                    county: selectedAddress.county,
+                    postcode: this.setup.postcode
+                };
+                this.showAddressDetails = true;
+            }
+        }
+    };
+</script>
+
+<style lang=""></style>
