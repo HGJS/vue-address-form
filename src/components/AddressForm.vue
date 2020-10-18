@@ -61,7 +61,7 @@
             There was an error fetching address data. Please enter your address
             manually.
         </div>
-        <div v-if="noResults" class="alert alert-warning mb-3">
+        <div v-else-if="noResults" class="alert alert-warning mb-3">
             No results found, please enter your address manually.
         </div>
         <form v-if="showAddressDetails || hasError">
