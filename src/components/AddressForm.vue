@@ -31,7 +31,10 @@
                     Find Address
                 </button>
             </div>
-            <div v-if="showAddressSelect && !hasError" class="form-group mb-3">
+            <div
+                v-if="showAddressSelect && !hasError && !noResults"
+                class="form-group mb-3"
+            >
                 <label for="formDataAddresses">Address</label>
                 <select
                     name="formDataAddresses"
