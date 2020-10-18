@@ -1,6 +1,6 @@
 <template>
     <div>
-        <form>
+        <form @submit.prevent="fetchAddresses">
             <h3 class="mb-3">Find your address</h3>
             <div class="form-group mb-3">
                 <label for="setupHouseNumber">House Number (optional)</label>
@@ -23,11 +23,7 @@
                 />
             </div>
             <div class="form-group mb-3">
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    @click="fetchAddresses"
-                >
+                <button class="btn btn-primary">
                     Find Address
                 </button>
             </div>
@@ -57,6 +53,7 @@
                 </select>
             </div>
         </form>
+
         <div v-if="hasError" class="alert alert-danger mb-3">
             There was an error fetching address data. Please enter your address
             manually.
