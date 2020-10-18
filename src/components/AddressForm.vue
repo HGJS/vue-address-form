@@ -31,7 +31,7 @@
                 v-if="showAddressSelect && !hasError && !noResults"
                 class="form-group mb-3"
             >
-                <label for="formDataAddresses">Address</label>
+                <label for="formDataAddresses">Choose Address</label>
                 <select
                     name="formDataAddresses"
                     id="formDataAddresses"
@@ -39,8 +39,8 @@
                     @change="populateAddress()"
                     ref="formDataAddresses"
                 >
-                    <option value="" selected disabled
-                        >{{ options.addresses.length }} Addresses found</option
+                    <option value="" selected disabled>
+                        {{ addressFirstOptionText }}</option
                     >
                     <option
                         v-for="(address, index) in options.addresses"
@@ -130,21 +130,37 @@
                 }
             };
         },
+        computed: {
+            addressFirstOptionText() {
+                if (this.options.addresses.length > 0) {
+                    return `${this.options.addresses.length} Addresses Found`;
+                } else {
+                    return '';
+                }
+            }
+        },
         methods: {
             fetchAddresses() {
+                console.log();
                 if (this.setup.postcode === this.previousPostcode) {
-                    if (this.setup.houseNumber) {
+                    if (this.setup.houseNumber || this.previousHouseNumber) {
                         if (
                             this.setup.houseNumber === this.previousHouseNumber
                         ) {
+                            console.log('Same postcode and house number');
                             return;
                         }
                     } else {
+                        console.log('Same postcode');
                         return;
                     }
                 }
 
                 this.formData.address = {};
+                this.options.addresses = [];
+                if (this.$refs.formDataAddresses) {
+                    this.$refs.formDataAddresses.value = '';
+                }
                 let request = `https://api.getAddress.io/find/${this.setup.postcode}?api-key=3BmZi5WZCUWa7FsF0moFEg28724&expand=true`;
                 if (this.setup.houseNumber) {
                     request = `https://api.getAddress.io/find/${this.setup.postcode}/${this.setup.houseNumber}?api-key=3BmZi5WZCUWa7FsF0moFEg28724&expand=true`;
@@ -201,5 +217,3 @@
         }
     };
 </script>
-
-<style lang=""></style>
