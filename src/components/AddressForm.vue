@@ -132,12 +132,16 @@
         },
         methods: {
             fetchAddresses() {
-                if (
-                    this.setup.postcode === this.previousPostcode &&
-                    this.setup.houseNumber &&
-                    this.setup.houseNumber === this.previousHouseNumber
-                ) {
-                    return;
+                if (this.setup.postcode === this.previousPostcode) {
+                    if (this.setup.houseNumber) {
+                        if (
+                            this.setup.houseNumber === this.previousHouseNumber
+                        ) {
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
                 }
 
                 this.formData.address = {};
@@ -162,7 +166,7 @@
             },
             checkAddressesTotal() {
                 if (this.options.addresses.length === 1) {
-                    this.populateAddress();
+                    this.populateAddress(1);
                     this.showAddressSelect = false;
                     this.noResults = false;
                 } else if (this.options.addresses.length === 0) {
@@ -173,13 +177,17 @@
                     this.showAddressSelect = true;
                 }
             },
-            populateAddress() {
+            populateAddress(total) {
                 let index = 0;
-                if (
-                    this.$refs.formDataAddresses &&
-                    this.$refs.formDataAddresses.value
-                ) {
-                    index = this.$refs.formDataAddresses.value;
+                if (total !== 1) {
+                    if (
+                        this.$refs.formDataAddresses &&
+                        this.$refs.formDataAddresses.value
+                    ) {
+                        index = this.$refs.formDataAddresses.value;
+                    } else {
+                        index = 0;
+                    }
                 }
                 const selectedAddress = this.options.addresses[index];
                 this.formData.address = {
