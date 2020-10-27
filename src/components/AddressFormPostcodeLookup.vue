@@ -1,69 +1,80 @@
 <template>
     <div>
-        <form @submit.prevent="fetchAddresses">
-            <h3 class="mb-3">Find your address</h3>
-            <div class="form-group mb-3">
-                <label for="setupHouseNumber">House Number (optional)</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    v-model="setup.houseNumber"
-                    id="setupHouseNumber"
-                    name="setupHouseNumber"
-                />
-            </div>
-            <div class="form-group mb-3">
-                <label for="setupPostcode">Postcode</label>
-                <input
-                    type="text"
-                    class="form-control text-uppercase"
-                    v-model="setup.postcode"
-                    id="setupPostcode"
-                    name="setupPostcode"
-                />
-            </div>
-            <div class="form-group mb-3">
-                <button class="btn btn-primary">
-                    Find Address
-                </button>
-            </div>
-            <div
-                v-if="showAddressSelect && !hasError && !noResults"
-                class="form-group mb-3"
-            >
-                <label for="formDataAddresses">Choose Address</label>
-                <select
-                    name="formDataAddresses"
-                    id="formDataAddresses"
-                    class="form-control"
-                    @change="populateAddress()"
-                    ref="formDataAddresses"
+        <template v-if="showAddressSearch">
+            <form @submit.prevent="fetchAddresses">
+                <h2 class="mb-4">Find your address</h2>
+                <div class="form-group">
+                    <label for="setupHouseNumber"
+                        >House Number (optional)</label
+                    >
+                    <input
+                        type="text"
+                        class="form-control"
+                        v-model="setup.houseNumber"
+                        id="setupHouseNumber"
+                        name="setupHouseNumber"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="setupPostcode">Postcode</label>
+                    <input
+                        type="text"
+                        class="form-control text-uppercase"
+                        v-model="setup.postcode"
+                        id="setupPostcode"
+                        name="setupPostcode"
+                    />
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary">
+                        Find Address
+                    </button>
+                </div>
+                <div
+                    v-if="showAddressSelect && !hasError && !noResults"
+                    class="form-group"
                 >
-                    <option value="" selected disabled>
-                        {{ addressFirstOptionText }}</option
+                    <label for="formDataAddresses">Choose Address</label>
+                    <select
+                        name="formDataAddresses"
+                        id="formDataAddresses"
+                        class="form-control"
+                        @change="populateAddress()"
+                        ref="formDataAddresses"
                     >
-                    <option
-                        v-for="(address, index) in options.addresses"
-                        :key="address.formatted_address[0]"
-                        :value="index"
-                    >
-                        {{ address.line_1 }}, {{ address.town_or_city }},
-                        {{ address.county }}
-                    </option>
-                </select>
-            </div>
-        </form>
+                        <option value="" selected disabled>
+                            {{ addressFirstOptionText }}</option
+                        >
+                        <option
+                            v-for="(address, index) in options.addresses"
+                            :key="address.formatted_address[0]"
+                            :value="index"
+                        >
+                            {{ address.line_1 }}, {{ address.town_or_city }},
+                            {{ address.county }}
+                        </option>
+                    </select>
+                </div>
+            </form>
 
-        <div v-if="hasError" class="alert alert-danger mb-3">
-            There was an error fetching address data. Please enter your address
-            manually.
-        </div>
-        <div v-else-if="noResults" class="alert alert-warning mb-3">
-            No results found, please enter your address manually.
-        </div>
+            <p class="mb-3">
+                <a href="#" @click.prevent="enterAddressManually"
+                    >Enter address manually</a
+                >
+            </p>
+
+            <div v-if="hasError" class="alert alert-danger">
+                There was an error fetching address data. Please enter your
+                address manually.
+            </div>
+            <div v-else-if="noResults" class="alert alert-warning">
+                No results found, please enter your address manually.
+            </div>
+        </template>
+
         <form v-if="showAddressDetails || hasError">
-            <h3 class="mb-3">Your address</h3>
-            <div class="form-group mb-3">
+            <h3>Your address</h3>
+            <div class="form-group">
                 <label for="addressLine1">Address Line 1</label>
                 <input
                     type="text"
@@ -73,7 +84,7 @@
                     id="addressLine1"
                 />
             </div>
-            <div class="form-group mb-3">
+            <div class="form-group">
                 <label for="addressTown">Town/City</label>
                 <input
                     type="text"
@@ -83,7 +94,7 @@
                     id="addressTown"
                 />
             </div>
-            <div class="form-group mb-3">
+            <div class="form-group">
                 <label for="addressCounty">County</label>
                 <input
                     type="text"
@@ -93,7 +104,7 @@
                     id="addressCounty"
                 />
             </div>
-            <div class="form-group mb-3">
+            <div class="form-group">
                 <label for="addressPostcode">Postcode</label>
                 <input
                     type="text"
@@ -118,6 +129,7 @@
                 showAddressSelect: false,
                 previousPostcode: '',
                 previousHouseNumber: '',
+                showAddressSearch: true,
                 setup: {
                     houseNumber: '',
                     postcode: ''
@@ -141,19 +153,20 @@
         },
         methods: {
             fetchAddresses() {
-                console.log();
                 if (this.setup.postcode === this.previousPostcode) {
                     if (this.setup.houseNumber || this.previousHouseNumber) {
                         if (
                             this.setup.houseNumber === this.previousHouseNumber
                         ) {
-                            console.log('Same postcode and house number');
                             return;
                         }
                     } else {
-                        console.log('Same postcode');
                         return;
                     }
+                }
+
+                if (this.setup.postcode === '') {
+                    return;
                 }
 
                 this.formData.address = {};
@@ -213,6 +226,12 @@
                     postcode: this.setup.postcode
                 };
                 this.showAddressDetails = true;
+            },
+            enterAddressManually() {
+                this.setup.address = '';
+                this.formData.address = {};
+                this.showAddressDetails = true;
+                this.showAddressSearch = false;
             }
         }
     };
