@@ -128,6 +128,11 @@
         },
         methods: {
             fetchAddresses() {
+                if (this.setup.address === '') {
+                    this.hideDropdown();
+                    return;
+                }
+
                 if (this.timer) {
                     clearTimeout(this.timer);
                 }
